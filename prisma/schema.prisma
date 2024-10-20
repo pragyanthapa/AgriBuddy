@@ -1,0 +1,104 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String              @id @default(cuid())
+  name              String
+  email             String              @unique
+  password          String
+  role              Role
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  farmer            Farmer?
+  buyer             Buyer?
+  governmentNGO     GovernmentNGO?
+  technologyProvider TechnologyProvider?
+}
+
+model Farmer {
+  id          String   @id @default(cuid())
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String   @unique
+  farmName    String
+  location    String
+  cropTypes   String
+  farmSize    Float
+  experience  String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  contracts   Contract[]
+}
+
+model Buyer {
+  id                 String   @id @default(cuid())
+  user               User     @relation(fields: [userId], references: [id])
+  userId             String   @unique
+  companyName        String
+  industry           String
+  productsInterested String
+  purchaseVolume     String
+  additionalInfo     String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  contracts          Contract[]
+}
+
+model GovernmentNGO {
+  id                  String   @id @default(cuid())
+  user                User     @relation(fields: [userId], references: [id])
+  userId              String   @unique
+  organization        String
+  role                String
+  partnershipInterest String
+  projectIdeas        String
+  additionalInfo      String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model TechnologyProvider {
+  id                 String   @id @default(cuid())
+  user               User     @relation(fields: [userId], references: [id])
+  userId             String   @unique
+  companyName        String
+  servicesOffered    String
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  contracts          Contract[] @relation("TechnologyProviderContracts")
+}
+
+model Contract {
+  id                 String   @id @default(cuid())
+  farmerId          String
+  farmer             Farmer   @relation(fields: [farmerId], references: [id])
+  buyerId            String
+  buyer              Buyer    @relation(fields: [buyerId], references: [id])
+  technologyProviderId String?
+  technologyProvider TechnologyProvider? @relation("TechnologyProviderContracts", fields: [technologyProviderId], references: [id])
+  details            String
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+// Define the Role enum
+enum Role {
+  FARMER
+  BUYER
+  GOVERNMENT_NGO
+  TECHNOLOGY_PROVIDER
+}
